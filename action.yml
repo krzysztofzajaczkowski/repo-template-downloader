@@ -1,0 +1,26 @@
+name: 'Repositories templates downloader'
+description: 'Downloads specified template file from owner's public repositories'
+inputs:
+  owner: 
+    description:  'owner of repositories to scan'
+    required: true
+  pathToTemplate:
+    description: 'path to template file'
+    required: true
+  outputDirectory:
+    description: 'directory to which template files should be saved'
+    required: true
+  username:
+    description: 'username for GitHub API calls authentication'
+    required: true
+  authToken:
+    description: 'token for GitHub API calls authentication'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: templatedownloader
+      run: |
+        ${{ github.action_path }}/Get-Templates.ps1 -Owner ${{ inputs.owner }} -PathToTemplate ${{ inputs.pathToTemplate }} `
+         -OutDir ${{ inputs.outputDirectory }} -Username ${{ inputs.username }} -AuthToken ${{ inputs.authToken }}
+      shell: pwsh
