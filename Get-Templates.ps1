@@ -25,6 +25,9 @@
         [string]$PathToTemplate,
 
         [parameter(Mandatory = $true)]
+        [string]$PathToCoverImage,
+
+        [parameter(Mandatory = $true)]
         [string]$OutDir,
 
         [parameter(Mandatory = $true)]
@@ -41,10 +44,16 @@
         return [Convert]::ToBase64String($AuthBytes)
     }
 
-    If(!(test-path -PathType container $OutDir))
-    {
-        New-Item -ItemType Directory -Path $OutDir
+    function New-DirIfNotExists {
+        param([string]$Path)
+
+        If(!(test-path -PathType container $Path))
+        {
+            New-Item -ItemType Directory -Path $Path
+        }
     }
+
+    New-DirIfNotExists($OutDir)
 
     $headers = Get-BasicAuthCreds -Username $Username -AuthToken $AuthToken
 
@@ -58,14 +67,25 @@
     #   select name, download_url
     #   call download_url and and save to {OutDir}/{name}
     foreach ($name in $names) {
-        $fileDetailsUri = "https://api.github.com/repos/$($name)/contents/$($PathToTemplate)"
-        $response = Invoke-WebRequest -Uri $fileDetailsUri -Headers @{"Authorization"="Basic $headers"} -SkipHttpErrorCheck
+        $templateFileDetailsUri = "https://api.github.com/repos/$($name)/contents/$($PathToTemplate)"
+        $templateFileResponse = Invoke-WebRequest -Uri $templateFileDetailsUri -Headers @{"Authorization"="Basic $headers"} -SkipHttpErrorCheck
 
-        if ($response.StatusCode -eq 200) {
-            $fileDetails = ConvertFrom-Json $response.Content | Select-Object name, download_url
+        $coverPhotoDetailsUri = "https://api.github.com/repos/$($name)/contents/$($PathToCoverImage)"
+        $coverPhotoResponse = Invoke-WebRequest -Uri $coverPhotoDetailsUri -Headers @{"Authorization"="Basic $headers"} -SkipHttpErrorCheck
+
+        if (($templateFileResponse.StatusCode -eq 200) -and ($coverPhotoResponse.StatusCode -eq 200)) {
+            $fileDetails = ConvertFrom-Json $templateFileResponse.Content | Select-Object name, download_url
             $fileName = $fileDetails | Select-Object -ExpandProperty name
             $fileDownloadUri = $fileDetails | Select-Object -ExpandProperty download_url
 
-            Invoke-RestMethod -Uri $fileDownloadUri -Headers @{"Authorization"="Basic $headers"} -OutFile "$($OutDir)/$($fileName)"
+            $imageDetails = ConvertFrom-Json $coverPhotoResponse.Content | Select-Object name, download_url
+            $imageName = $imageDetails | Select-Object -ExpandProperty name
+            $imageDownloadUri = $imageDetails | Select-Object -ExpandProperty download_url
+
+            $dirName = $name.Split('/') | Select-Object -Last 1
+            New-DirIfNotExists("$($OutDir)/$($dirName)")
+
+            Invoke-RestMethod -Uri $fileDownloadUri -Headers @{"Authorization"="Basic $headers"} -OutFile "$($OutDir)/$($dirName)/$($fileName)"
+            Invoke-RestMethod -Uri $imageDownloadUri -Headers @{"Authorization"="Basic $headers"} -OutFile "$($OutDir)/$($dirName)/$($imageName)"
         }
     }
