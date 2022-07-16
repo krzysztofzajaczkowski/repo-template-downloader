@@ -1,5 +1,5 @@
 name: 'Repositories templates downloader'
-description: 'Downloads specified template file from owner's public repositories'
+description: "Downloads specified template file from owner's public repositories"
 inputs:
   owner: 
     description:  'owner of repositories to scan'
@@ -24,6 +24,6 @@ runs:
   steps:
     - id: templatedownloader
       run: |
-        ${{ github.action_path }}/Get-Templates.ps1 -Owner ${{ inputs.owner }} -PathToTemplate ${{ inputs.pathToTemplate }} -PathToCoverImage $${{ inputs.pathToCoverImage }} `
+        ${{ github.action_path }}/Get-Templates.ps1 -Owner ${{ inputs.owner }} -PathToTemplate ${{ inputs.pathToTemplate }} -PathToCoverImage ${{ inputs.pathToCoverImage }} `
          -OutDir ${{ inputs.outputDirectory }} -Username ${{ inputs.username }} -AuthToken ${{ inputs.authToken }}
       shell: pwsh
