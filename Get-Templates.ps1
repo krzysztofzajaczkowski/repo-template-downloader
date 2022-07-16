@@ -7,6 +7,8 @@
     Owner of scanned repositories
     .PARAMETER pathToTemplate
     Path to template file in repository
+    .PARAMETER pathToCoverImage
+    Path to cover image in repository
     .PARAMETER outDir
     Directory to which all template files are saved
     .PARAMETER username

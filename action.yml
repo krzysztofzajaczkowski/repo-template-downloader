@@ -7,6 +7,9 @@ inputs:
   pathToTemplate:
     description: 'path to template file'
     required: true
+  pathToCoverImage:
+    description: 'path to cover image'
+    required: true
   outputDirectory:
     description: 'directory to which template files should be saved'
     required: true
@@ -21,6 +24,6 @@ runs:
   steps:
     - id: templatedownloader
       run: |
-        ${{ github.action_path }}/Get-Templates.ps1 -Owner ${{ inputs.owner }} -PathToTemplate ${{ inputs.pathToTemplate }} `
+        ${{ github.action_path }}/Get-Templates.ps1 -Owner ${{ inputs.owner }} -PathToTemplate ${{ inputs.pathToTemplate }} -PathToCoverImage $${{ inputs.pathToCoverImage }} `
          -OutDir ${{ inputs.outputDirectory }} -Username ${{ inputs.username }} -AuthToken ${{ inputs.authToken }}
       shell: pwsh
